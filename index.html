@@ -17,7 +17,6 @@ color:#fff;
 overflow:hidden;
 }
 
-/* MAIN */
 .app{
 width:820px;
 height:420px;
@@ -31,7 +30,6 @@ position:relative;
 overflow:hidden;
 }
 
-/* LEFT SIDE */
 .left{
 flex:1;
 display:flex;
@@ -48,7 +46,6 @@ margin-bottom:18px;
 text-shadow:0 0 18px rgba(0,0,0,.6);
 }
 
-/* BUTTON GROUPS */
 .row{
 display:flex;
 gap:10px;
@@ -71,7 +68,6 @@ transition:.2s;
 button:hover{background:rgba(255,255,255,0.25)}
 button.stopActive{background:#666}
 
-/* SESSION */
 .session{
 position:absolute;
 bottom:8px;
@@ -80,7 +76,6 @@ font-size:12px;
 opacity:.7;
 }
 
-/* RIGHT PANEL */
 .panel{
 width:260px;
 height:100%;
@@ -92,13 +87,8 @@ flex-direction:column;
 }
 .panel.show{display:flex;}
 
-.panelScroll{
-overflow-y:auto;
-padding-right:6px;
-}
-
-/* spacing */
-.field{margin-bottom:18px;}
+.panelScroll{overflow-y:auto;padding-right:6px;}
+.field{margin-bottom:20px;}
 
 label{font-size:12px;opacity:.8}
 
@@ -112,30 +102,25 @@ background:rgba(255,255,255,0.12);
 color:#fff;
 }
 
-/* FILE BUTTON */
 .fileBtn{
 margin-top:8px;
 padding:10px;
 border-radius:12px;
 background:rgba(255,255,255,0.14);
 font-size:12px;
-overflow:hidden;
-white-space:nowrap;
 cursor:pointer;
 }
 
-/* scrolling filename */
-.marquee{
-display:inline-block;
+.fileName{
+font-size:11px;
+opacity:.7;
+margin-top:6px;
+min-height:16px;
 white-space:nowrap;
-animation:marq 7s linear infinite;
-}
-@keyframes marq{
-0%{transform:translateX(0)}
-100%{transform:translateX(-50%)}
+overflow:hidden;
+text-overflow:ellipsis;
 }
 
-/* settings toggle */
 .toggle{
 position:absolute;
 top:12px;
@@ -151,7 +136,6 @@ border-radius:10px;
 
 <div class="app">
 
-<!-- LEFT -->
 <div class="left">
 <div class="timer" id="timer">25:00</div>
 
@@ -171,7 +155,6 @@ border-radius:10px;
 <div class="session" id="session">Sessions: 0</div>
 </div>
 
-<!-- RIGHT PANEL -->
 <div class="panel" id="panel">
 <div class="panelScroll">
 
@@ -182,18 +165,14 @@ border-radius:10px;
 
 <div class="field">
 <label>Background</label>
-<label class="fileBtn" id="bgLabel">
-Upload background
-<input type="file" id="bgInput" hidden>
-</label>
+<label class="fileBtn">Upload background<input type="file" id="bgInput" hidden></label>
+<div class="fileName" id="bgName"></div>
 </div>
 
 <div class="field">
 <label>Alarm Sound</label>
-<label class="fileBtn" id="audioLabel">
-Upload sound
-<input type="file" id="audioInput" hidden>
-</label>
+<label class="fileBtn">Upload sound<input type="file" id="audioInput" hidden></label>
+<div class="fileName" id="audioName"></div>
 </div>
 
 </div>
@@ -212,21 +191,14 @@ let audio=new Audio();
 
 const timerEl=document.getElementById("timer");
 const customInput=document.getElementById("customTime");
+const panel=document.getElementById("panel");
 
-/* LIVE typing update */
-const DEFAULT_TIME = 25;
+const DEFAULT_TIME=25;
 
 customInput.addEventListener("input",()=>{
 if(running) return;
-
-let val = parseInt(customInput.value);
-
-if(!val || val <= 0){
-time = DEFAULT_TIME * 60;
-}else{
-time = val * 60;
-}
-
+let val=parseInt(customInput.value);
+if(!val||val<=0){time=DEFAULT_TIME*60;}else{time=val*60;}
 updateDisplay();
 });
 
@@ -237,21 +209,18 @@ timerEl.innerText=`${m}:${s.toString().padStart(2,'0')}`;
 }
 
 function startTimer(){
-if(running)return;
+if(running) return;
 if(time<=0){
-let val = parseInt(customInput.value);
-if(!val || val <= 0){
-val = DEFAULT_TIME;
-customInput.value = DEFAULT_TIME;
-}
-time = val * 60;
+let val=parseInt(customInput.value);
+if(!val||val<=0){val=DEFAULT_TIME;customInput.value=DEFAULT_TIME;}
+time=val*60;
 }
 running=true;
+panel.classList.remove("show");
 
 timer=setInterval(()=>{
 time--;
 updateDisplay();
-
 if(time<=0){
 clearInterval(timer);
 running=false;
@@ -268,16 +237,10 @@ function resumeTimer(){if(!running)startTimer();}
 function resetTimer(){
 clearInterval(timer);
 running=false;
-
-let val = parseInt(customInput.value);
-if(!val || val <= 0){
-val = DEFAULT_TIME;
-customInput.value = DEFAULT_TIME;
-}
-
-time = val * 60;
+let val=parseInt(customInput.value);
+if(!val||val<=0){val=DEFAULT_TIME;customInput.value=DEFAULT_TIME;}
+time=val*60;
 updateDisplay();
-
 audio.pause();
 audio.currentTime=0;
 }
@@ -298,7 +261,7 @@ audio.pause();
 audio.currentTime=0;
 let btn=document.getElementById("stopSound");
 btn.classList.add("stopActive");
-setTimeout(()=>btn.classList.remove("stopActive"),5000);
+setTimeout(()=>btn.classList.remove("stopActive"),3000);
 }
 
 function resetSessions(){
@@ -306,30 +269,24 @@ sessions=0;
 document.getElementById("session").innerText="Sessions: 0";
 }
 
-function togglePanel(){
-document.getElementById("panel").classList.toggle("show");
-}
+function togglePanel(){panel.classList.toggle("show");}
 
-/* BG upload */
-bgInput.onchange=e=>{
-let file=e.target.files[0];
-if(file){
-let name=file.name;
-bgLabel.innerHTML=`<span class="marquee">${name} &nbsp; ${name}</span>`;
-let url=URL.createObjectURL(file);
+bgInput.addEventListener("change",function(){
+const file=this.files[0];
+if(!file) return;
+const url=URL.createObjectURL(file);
 document.body.style.background=`url(${url}) center/cover`;
-}
-};
+document.getElementById("bgName").textContent=file.name;
+this.value="";
+});
 
-/* AUDIO upload */
-audioInput.onchange=e=>{
-let file=e.target.files[0];
-if(file){
-let name=file.name;
-audioLabel.innerHTML=`<span class="marquee">${name} &nbsp; ${name}</span>`;
+audioInput.addEventListener("change",function(){
+const file=this.files[0];
+if(!file) return;
 audio.src=URL.createObjectURL(file);
-}
-};
+document.getElementById("audioName").textContent=file.name;
+this.value="";
+});
 
 updateDisplay();
 </script>
