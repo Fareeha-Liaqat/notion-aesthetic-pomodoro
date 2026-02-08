@@ -1,294 +1,337 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Lumi Timer</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<title>Lumi Pomodoro</title>
 
 <style>
+*{box-sizing:border-box;font-family:Inter,system-ui}
 body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-family:Poppins;
-  background-size:cover;
-  background-position:center;
+margin:0;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#111;
+color:#fff;
+overflow:hidden;
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.25);
-  pointer-events:none;
+/* MAIN */
+.app{
+width:820px;
+height:420px;
+background:rgba(0,0,0,0.55);
+border-radius:22px;
+backdrop-filter:blur(18px);
+display:flex;
+padding:20px;
+gap:20px;
+position:relative;
+overflow:hidden;
 }
 
-.panel{
-  backdrop-filter:blur(18px);
-  background:rgba(30,30,30,0.35);
-  border:1px solid rgba(255,255,255,0.35);
-  border-radius:28px;
-  padding:34px;
-  width:360px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.35);
-  text-align:center;
-  color:white;
-  position:relative;
-  z-index:2;
+/* LEFT SIDE */
+.left{
+flex:1;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+position:relative;
 }
 
-#time{
-  font-size:72px;
-  font-weight:700;
+.timer{
+font-size:68px;
+font-weight:700;
+margin-bottom:18px;
+text-shadow:0 0 18px rgba(0,0,0,.6);
+}
+
+/* BUTTON GROUPS */
+.row{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:center;
+margin-bottom:10px;
 }
 
 button{
-  background:rgba(255,255,255,0.18);
-  border:none;
-  padding:10px 16px;
-  margin:6px;
-  border-radius:14px;
-  color:white;
-  font-weight:500;
-  cursor:pointer;
-  transition:0.2s;
+border:none;
+padding:10px 16px;
+border-radius:12px;
+cursor:pointer;
+font-weight:600;
+background:rgba(255,255,255,0.12);
+color:#fff;
+backdrop-filter:blur(6px);
+transition:.2s;
 }
-button:hover{
-  background:rgba(255,255,255,0.35);
+button:hover{background:rgba(255,255,255,0.25)}
+button.stopActive{background:#666}
+
+/* SESSION */
+.session{
+position:absolute;
+bottom:8px;
+left:12px;
+font-size:12px;
+opacity:.7;
 }
 
-button.activeStop{
-  background:rgba(255,120,120,0.45);
+/* RIGHT PANEL */
+.panel{
+width:260px;
+height:100%;
+background:rgba(255,255,255,0.05);
+border-radius:18px;
+padding:16px;
+display:none;
+flex-direction:column;
+}
+.panel.show{display:flex;}
+
+.panelScroll{
+overflow-y:auto;
+padding-right:6px;
 }
 
+/* spacing */
+.field{margin-bottom:18px;}
+
+label{font-size:12px;opacity:.8}
+
+input[type="number"]{
+width:100%;
+margin-top:6px;
+padding:9px;
+border-radius:10px;
+border:none;
+background:rgba(255,255,255,0.12);
+color:#fff;
+}
+
+/* FILE BUTTON */
 .fileBtn{
-  background:rgba(255,255,255,0.18);
-  padding:8px 14px;
-  border-radius:12px;
-  display:inline-block;
-  cursor:pointer;
-  margin-top:6px;
-  font-size:14px;
+margin-top:8px;
+padding:10px;
+border-radius:12px;
+background:rgba(255,255,255,0.14);
+font-size:12px;
+overflow:hidden;
+white-space:nowrap;
+cursor:pointer;
 }
-.fileBtn:hover{
-  background:rgba(255,255,255,0.35);
+
+/* scrolling filename */
+.marquee{
+display:inline-block;
+white-space:nowrap;
+animation:marq 7s linear infinite;
 }
-.fileBtn input{display:none;}
+@keyframes marq{
+0%{transform:translateX(0)}
+100%{transform:translateX(-50%)}
+}
 
-.slider{width:100%;}
-
-.counter{
-  margin-top:10px;
-  font-size:14px;
+/* settings toggle */
+.toggle{
+position:absolute;
+top:12px;
+right:14px;
+font-size:12px;
+padding:6px 10px;
+border-radius:10px;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="panel">
+<div class="app">
 
-<div id="time">25:00</div>
+<!-- LEFT -->
+<div class="left">
+<div class="timer" id="timer">25:00</div>
 
-<button onclick="start()">Start</button> <button onclick="pause()">Pause</button> <button onclick="resume()">Resume</button> <button onclick="reset()">Reset</button> <button onclick="startBreak()">Break 5m</button>
+<div class="row">
+<button onclick="startTimer()">Start</button>
+<button onclick="pauseTimer()">Pause</button>
+<button onclick="resumeTimer()">Resume</button>
+<button onclick="resetTimer()">Reset</button>
+</div>
 
-<br><br>
+<div class="row">
+<button onclick="startBreak()">Break</button>
+<button id="stopSound" onclick="stopSound()">Stop Sound</button>
+<button onclick="resetSessions()">Reset Session</button>
+</div>
 
-<input type="number" id="mins" value="25"> mins
+<div class="session" id="session">Sessions: 0</div>
+</div>
 
-<br><br>
+<!-- RIGHT PANEL -->
+<div class="panel" id="panel">
+<div class="panelScroll">
 
+<div class="field">
+<label>Custom Minutes</label>
+<input id="customTime" type="number" value="25">
+</div>
+
+<div class="field">
+<label>Background</label>
 <label class="fileBtn" id="bgLabel">
-🖼 Upload bg
-<input type="file" id="bgUpload">
+Upload background
+<input type="file" id="bgInput" hidden>
 </label>
+</div>
 
-<br>
-
-<label class="fileBtn" id="soundLabel">
-🎵 Upload alarm
-<input type="file" id="soundUpload">
+<div class="field">
+<label>Alarm Sound</label>
+<label class="fileBtn" id="audioLabel">
+Upload sound
+<input type="file" id="audioInput" hidden>
 </label>
-
-<br><br>
-
-Zoom <input type="range" min="100" max="200" value="100" id="zoom" class="slider">
-
-Position X <input type="range" min="0" max="100" value="50" id="posX" class="slider">
-
-Position Y <input type="range" min="0" max="100" value="50" id="posY" class="slider">
-
-<br><br>
-
-<button id="stopBtn" onclick="stopAlarm()">Stop sound</button>
-
-<div class="counter">
-Sessions today: <span id="sessionCount">0</span><br>
-<button onclick="manualReset()">Reset sessions</button>
 </div>
 
 </div>
+</div>
 
-<audio id="alarm"></audio>
+<button class="toggle" onclick="togglePanel()">⚙</button>
+
+</div>
 
 <script>
-let current;
-let interval=null;
-let paused=false;
+let time=1500;
+let timer;
+let running=false;
 let sessions=0;
+let audio=new Audio();
 
-/* -------- SESSION -------- */
-function loadSessions(){
-  const today=new Date().toDateString();
-  const storedDate=localStorage.getItem("sessionDate");
-  if(storedDate!==today){
-    sessions=0;
-    localStorage.setItem("sessionDate",today);
-    localStorage.setItem("sessions","0");
-  }else{
-    sessions=parseInt(localStorage.getItem("sessions")||"0");
-  }
-  updateSessionUI();
+const timerEl=document.getElementById("timer");
+const customInput=document.getElementById("customTime");
+
+/* LIVE typing update */
+const DEFAULT_TIME = 25;
+
+customInput.addEventListener("input",()=>{
+if(running) return;
+
+let val = parseInt(customInput.value);
+
+if(!val || val <= 0){
+time = DEFAULT_TIME * 60;
+}else{
+time = val * 60;
 }
 
-function updateSessionUI(){
-  document.getElementById("sessionCount").innerText=sessions;
-}
+updateDisplay();
+});
 
-function addSession(){
-  sessions++;
-  localStorage.setItem("sessions",sessions);
-  updateSessionUI();
-}
-
-function manualReset(){
-  sessions=0;
-  localStorage.setItem("sessions","0");
-  updateSessionUI();
-}
-
-/* -------- TIMER -------- */
 function updateDisplay(){
-  let m=Math.floor(current/60);
-  let s=current%60;
-  if(s<10)s="0"+s;
-  document.getElementById("time").innerText=`${m}:${s}`;
+let m=Math.floor(time/60);
+let s=time%60;
+timerEl.innerText=`${m}:${s.toString().padStart(2,'0')}`;
 }
 
-function start(){
-  stopAlarmImmediate();
-  resetStopBtn();
+function startTimer(){
+if(running)return;
+if(time<=0){
+let val = parseInt(customInput.value);
+if(!val || val <= 0){
+val = DEFAULT_TIME;
+customInput.value = DEFAULT_TIME;
+}
+time = val * 60;
+}
+running=true;
 
-  current=document.getElementById("mins").value*60;
-  updateDisplay();
-  clearInterval(interval);
+timer=setInterval(()=>{
+time--;
+updateDisplay();
 
-  interval=setInterval(runTimer,1000);
-  paused=false;
+if(time<=0){
+clearInterval(timer);
+running=false;
+sessions++;
+document.getElementById("session").innerText="Sessions: "+sessions;
+audio.play();
+}
+},1000);
 }
 
-function runTimer(){
-  current--;
-  updateDisplay();
-  if(current<=0){
-    clearInterval(interval);
-    document.getElementById("alarm").play();
-    addSession();
-  }
+function pauseTimer(){clearInterval(timer);running=false;}
+function resumeTimer(){if(!running)startTimer();}
+
+function resetTimer(){
+clearInterval(timer);
+running=false;
+
+let val = parseInt(customInput.value);
+if(!val || val <= 0){
+val = DEFAULT_TIME;
+customInput.value = DEFAULT_TIME;
 }
 
-function pause(){
-  clearInterval(interval);
-  paused=true;
-}
+time = val * 60;
+updateDisplay();
 
-function resume(){
-  if(!paused) return;
-  clearInterval(interval);
-  interval=setInterval(runTimer,1000);
-  paused=false;
-}
-
-function reset(){
-  clearInterval(interval);
-  current=document.getElementById("mins").value*60;
-  updateDisplay();
+audio.pause();
+audio.currentTime=0;
 }
 
 function startBreak(){
-  stopAlarmImmediate();
-  resetStopBtn();
-
-  clearInterval(interval);
-  current=5*60;
-  updateDisplay();
-  interval=setInterval(runTimer,1000);
+clearInterval(timer);
+running=false;
+time=300;
+updateDisplay();
+startTimer();
+audio.pause();
+audio.currentTime=0;
+document.getElementById("stopSound").classList.remove("stopActive");
 }
 
-/* -------- SOUND -------- */
-function stopAlarm(){
-  let a=document.getElementById("alarm");
-  a.pause();
-  a.currentTime=0;
-
-  const btn=document.getElementById("stopBtn");
-  btn.classList.add("activeStop");
-
-  setTimeout(()=>btn.classList.remove("activeStop"),5000);
+function stopSound(){
+audio.pause();
+audio.currentTime=0;
+let btn=document.getElementById("stopSound");
+btn.classList.add("stopActive");
+setTimeout(()=>btn.classList.remove("stopActive"),5000);
 }
 
-function stopAlarmImmediate(){
-  let a=document.getElementById("alarm");
-  a.pause();
-  a.currentTime=0;
+function resetSessions(){
+sessions=0;
+document.getElementById("session").innerText="Sessions: 0";
 }
 
-function resetStopBtn(){
-  document.getElementById("stopBtn").classList.remove("activeStop");
+function togglePanel(){
+document.getElementById("panel").classList.toggle("show");
 }
 
-/* -------- UPLOADS -------- */
-bgUpload.onchange=e=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  const url=URL.createObjectURL(file);
-  document.body.style.backgroundImage=`url(${url})`;
-  localStorage.setItem("bg",url);
-  document.getElementById("bgLabel").childNodes[0].textContent="🖼 "+file.name;
+/* BG upload */
+bgInput.onchange=e=>{
+let file=e.target.files[0];
+if(file){
+let name=file.name;
+bgLabel.innerHTML=`<span class="marquee">${name} &nbsp; ${name}</span>`;
+let url=URL.createObjectURL(file);
+document.body.style.background=`url(${url}) center/cover`;
+}
 };
 
-soundUpload.onchange=e=>{
-  const file=e.target.files[0];
-  if(!file)return;
-  const url=URL.createObjectURL(file);
-  document.getElementById("alarm").src=url;
-  document.getElementById("soundLabel").childNodes[0].textContent="🎵 "+file.name;
+/* AUDIO upload */
+audioInput.onchange=e=>{
+let file=e.target.files[0];
+if(file){
+let name=file.name;
+audioLabel.innerHTML=`<span class="marquee">${name} &nbsp; ${name}</span>`;
+audio.src=URL.createObjectURL(file);
+}
 };
 
-/* -------- BG CONTROLS -------- */
-zoom.oninput=e=>{
-  document.body.style.backgroundSize=e.target.value+"%";
-};
-posX.oninput=e=>{
-  document.body.style.backgroundPositionX=e.target.value+"%";
-};
-posY.oninput=e=>{
-  document.body.style.backgroundPositionY=e.target.value+"%";
-};
-
-/* -------- LOAD -------- */
-window.onload=()=>{
-  const bg=localStorage.getItem("bg");
-  if(bg) document.body.style.backgroundImage=`url(${bg})`;
-  current=document.getElementById("mins").value*60;
-  updateDisplay();
-  loadSessions();
-};
+updateDisplay();
 </script>
 
 </body>
