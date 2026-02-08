@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lumi Timer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:Poppins;
+  background-size:cover;
+  background-position:center;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.25);
+  pointer-events:none;
+}
+
+.panel{
+  backdrop-filter:blur(18px);
+  background:rgba(30,30,30,0.35);
+  border:1px solid rgba(255,255,255,0.35);
+  border-radius:28px;
+  padding:34px;
+  width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
+  text-align:center;
+  color:white;
+  position:relative;
+  z-index:2;
+}
+
+#time{
+  font-size:72px;
+  font-weight:700;
+}
+
+button{
+  background:rgba(255,255,255,0.18);
+  border:none;
+  padding:10px 16px;
+  margin:6px;
+  border-radius:14px;
+  color:white;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.2s;
+}
+button:hover{
+  background:rgba(255,255,255,0.35);
+}
+
+button.activeStop{
+  background:rgba(255,120,120,0.45);
+}
+
+.fileBtn{
+  background:rgba(255,255,255,0.18);
+  padding:8px 14px;
+  border-radius:12px;
+  display:inline-block;
+  cursor:pointer;
+  margin-top:6px;
+  font-size:14px;
+}
+.fileBtn:hover{
+  background:rgba(255,255,255,0.35);
+}
+.fileBtn input{display:none;}
+
+.slider{width:100%;}
+
+.counter{
+  margin-top:10px;
+  font-size:14px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="panel">
+
+<div id="time">25:00</div>
+
+<button onclick="start()">Start</button> <button onclick="pause()">Pause</button> <button onclick="resume()">Resume</button> <button onclick="reset()">Reset</button> <button onclick="startBreak()">Break 5m</button>
+
+<br><br>
+
+<input type="number" id="mins" value="25"> mins
+
+<br><br>
+
+<label class="fileBtn" id="bgLabel">
+🖼 Upload bg
+<input type="file" id="bgUpload">
+</label>
+
+<br>
+
+<label class="fileBtn" id="soundLabel">
+🎵 Upload alarm
+<input type="file" id="soundUpload">
+</label>
+
+<br><br>
+
+Zoom <input type="range" min="100" max="200" value="100" id="zoom" class="slider">
+
+Position X <input type="range" min="0" max="100" value="50" id="posX" class="slider">
+
+Position Y <input type="range" min="0" max="100" value="50" id="posY" class="slider">
+
+<br><br>
+
+<button id="stopBtn" onclick="stopAlarm()">Stop sound</button>
+
+<div class="counter">
+Sessions today: <span id="sessionCount">0</span><br>
+<button onclick="manualReset()">Reset sessions</button>
+</div>
+
+</div>
+
+<audio id="alarm"></audio>
+
+<script>
+let current;
+let interval=null;
+let paused=false;
+let sessions=0;
+
+/* -------- SESSION -------- */
+function loadSessions(){
+  const today=new Date().toDateString();
+  const storedDate=localStorage.getItem("sessionDate");
+  if(storedDate!==today){
+    sessions=0;
+    localStorage.setItem("sessionDate",today);
+    localStorage.setItem("sessions","0");
+  }else{
+    sessions=parseInt(localStorage.getItem("sessions")||"0");
+  }
+  updateSessionUI();
+}
+
+function updateSessionUI(){
+  document.getElementById("sessionCount").innerText=sessions;
+}
+
+function addSession(){
+  sessions++;
+  localStorage.setItem("sessions",sessions);
+  updateSessionUI();
+}
+
+function manualReset(){
+  sessions=0;
+  localStorage.setItem("sessions","0");
+  updateSessionUI();
+}
+
+/* -------- TIMER -------- */
+function updateDisplay(){
+  let m=Math.floor(current/60);
+  let s=current%60;
+  if(s<10)s="0"+s;
+  document.getElementById("time").innerText=`${m}:${s}`;
+}
+
+function start(){
+  stopAlarmImmediate();
+  resetStopBtn();
+
+  current=document.getElementById("mins").value*60;
+  updateDisplay();
+  clearInterval(interval);
+
+  interval=setInterval(runTimer,1000);
+  paused=false;
+}
+
+function runTimer(){
+  current--;
+  updateDisplay();
+  if(current<=0){
+    clearInterval(interval);
+    document.getElementById("alarm").play();
+    addSession();
+  }
+}
+
+function pause(){
+  clearInterval(interval);
+  paused=true;
+}
+
+function resume(){
+  if(!paused) return;
+  clearInterval(interval);
+  interval=setInterval(runTimer,1000);
+  paused=false;
+}
+
+function reset(){
+  clearInterval(interval);
+  current=document.getElementById("mins").value*60;
+  updateDisplay();
+}
+
+function startBreak(){
+  stopAlarmImmediate();
+  resetStopBtn();
+
+  clearInterval(interval);
+  current=5*60;
+  updateDisplay();
+  interval=setInterval(runTimer,1000);
+}
+
+/* -------- SOUND -------- */
+function stopAlarm(){
+  let a=document.getElementById("alarm");
+  a.pause();
+  a.currentTime=0;
+
+  const btn=document.getElementById("stopBtn");
+  btn.classList.add("activeStop");
+
+  setTimeout(()=>btn.classList.remove("activeStop"),5000);
+}
+
+function stopAlarmImmediate(){
+  let a=document.getElementById("alarm");
+  a.pause();
+  a.currentTime=0;
+}
+
+function resetStopBtn(){
+  document.getElementById("stopBtn").classList.remove("activeStop");
+}
+
+/* -------- UPLOADS -------- */
+bgUpload.onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const url=URL.createObjectURL(file);
+  document.body.style.backgroundImage=`url(${url})`;
+  localStorage.setItem("bg",url);
+  document.getElementById("bgLabel").childNodes[0].textContent="🖼 "+file.name;
+};
+
+soundUpload.onchange=e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  const url=URL.createObjectURL(file);
+  document.getElementById("alarm").src=url;
+  document.getElementById("soundLabel").childNodes[0].textContent="🎵 "+file.name;
+};
+
+/* -------- BG CONTROLS -------- */
+zoom.oninput=e=>{
+  document.body.style.backgroundSize=e.target.value+"%";
+};
+posX.oninput=e=>{
+  document.body.style.backgroundPositionX=e.target.value+"%";
+};
+posY.oninput=e=>{
+  document.body.style.backgroundPositionY=e.target.value+"%";
+};
+
+/* -------- LOAD -------- */
+window.onload=()=>{
+  const bg=localStorage.getItem("bg");
+  if(bg) document.body.style.backgroundImage=`url(${bg})`;
+  current=document.getElementById("mins").value*60;
+  updateDisplay();
+  loadSessions();
+};
+</script>
+
+</body>
+</html>
