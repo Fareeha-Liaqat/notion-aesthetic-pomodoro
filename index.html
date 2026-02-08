@@ -6,135 +6,51 @@
 
 <style>
 *{box-sizing:border-box;font-family:Inter,system-ui}
-body{
-margin:0;
-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#111;
-color:#fff;
-overflow:hidden;
-}
+body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;overflow:hidden;transition:background 0.3s}
 
-.app{
-width:820px;
-height:420px;
-background:rgba(0,0,0,0.55);
-border-radius:22px;
-backdrop-filter:blur(18px);
-display:flex;
-padding:20px;
-gap:20px;
-position:relative;
-overflow:hidden;
-}
+.app{width:820px;height:420px;background:rgba(0,0,0,0.55);border-radius:22px;backdrop-filter:blur(18px);display:flex;padding:20px;gap:20px;position:relative;overflow:hidden}
 
-.left{
-flex:1;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-position:relative;
-}
+.left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
 
-.timer{
-font-size:68px;
-font-weight:700;
-margin-bottom:18px;
-text-shadow:0 0 18px rgba(0,0,0,.6);
-}
+.timer{font-size:68px;font-weight:700;margin-bottom:18px;text-shadow:0 0 18px rgba(0,0,0,.6)}
 
-.row{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-justify-content:center;
-margin-bottom:10px;
-}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
 
-button{
-border:none;
-padding:10px 16px;
-border-radius:12px;
-cursor:pointer;
-font-weight:600;
-background:rgba(255,255,255,0.12);
-color:#fff;
-backdrop-filter:blur(6px);
-transition:.2s;
-}
+button{border:none;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600;background:rgba(255,255,255,0.12);color:#fff;backdrop-filter:blur(6px);transition:.2s}
 button:hover{background:rgba(255,255,255,0.25)}
 button.stopActive{background:#666}
 
-.session{
-position:absolute;
-bottom:8px;
-left:12px;
-font-size:12px;
-opacity:.7;
-}
+.session{position:absolute;bottom:8px;left:12px;font-size:12px;opacity:.7}
 
-.panel{
-width:260px;
-height:100%;
-background:rgba(255,255,255,0.05);
-border-radius:18px;
-padding:16px;
-display:none;
-flex-direction:column;
-}
-.panel.show{display:flex;}
+.fullBtn{position:absolute;bottom:8px;right:12px;font-size:12px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.15);cursor:pointer}
 
-.panelScroll{overflow-y:auto;padding-right:6px;}
-.field{margin-bottom:20px;}
+.panel{width:260px;height:100%;background:rgba(255,255,255,0.05);border-radius:18px;padding:16px;display:none;flex-direction:column}
+.panel.show{display:flex}
 
+.panelScroll{overflow-y:auto;padding-right:6px}
+.field{margin-bottom:18px}
 label{font-size:12px;opacity:.8}
 
-input[type="number"]{
-width:100%;
-margin-top:6px;
-padding:9px;
-border-radius:10px;
-border:none;
-background:rgba(255,255,255,0.12);
-color:#fff;
-}
+input[type="number"],input[type="range"]{width:100%;margin-top:6px;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,0.12);color:#fff}
 
-.fileBtn{
-margin-top:8px;
-padding:10px;
-border-radius:12px;
-background:rgba(255,255,255,0.14);
-font-size:12px;
-cursor:pointer;
-}
+.fileBtn{margin-top:8px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.14);font-size:12px;overflow:hidden;white-space:nowrap;cursor:pointer;display:block}
 
-.fileName{
-font-size:11px;
-opacity:.7;
-margin-top:6px;
-min-height:16px;
-white-space:nowrap;
-overflow:hidden;
-text-overflow:ellipsis;
-}
+.marquee{display:inline-block;white-space:nowrap;animation:marq 7s linear infinite}
+@keyframes marq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-.toggle{
-position:absolute;
-top:12px;
-right:14px;
-font-size:12px;
-padding:6px 10px;
-border-radius:10px;
-}
+.toggle{position:absolute;top:12px;right:14px;font-size:12px;padding:6px 10px;border-radius:10px}
+
+.fullscreenView{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:999}
+.fullscreenView.show{display:flex}
+
+.exitBtn{position:absolute;top:20px;right:20px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,0.2);cursor:pointer}
+
 </style>
 </head>
 
 <body>
 
-<div class="app">
+<div class="app" id="app">
 
 <div class="left">
 <div class="timer" id="timer">25:00</div>
@@ -153,6 +69,7 @@ border-radius:10px;
 </div>
 
 <div class="session" id="session">Sessions: 0</div>
+<button class="fullBtn" onclick="enterFullscreen()">Fullscreen</button>
 </div>
 
 <div class="panel" id="panel">
@@ -165,14 +82,31 @@ border-radius:10px;
 
 <div class="field">
 <label>Background</label>
-<label class="fileBtn">Upload background<input type="file" id="bgInput" hidden></label>
-<div class="fileName" id="bgName"></div>
+<label class="fileBtn" id="bgLabel">Upload background
+<input type="file" id="bgInput" hidden>
+</label>
 </div>
 
 <div class="field">
 <label>Alarm Sound</label>
-<label class="fileBtn">Upload sound<input type="file" id="audioInput" hidden></label>
-<div class="fileName" id="audioName"></div>
+<label class="fileBtn" id="audioLabel">Upload sound
+<input type="file" id="audioInput" hidden>
+</label>
+</div>
+
+<div class="field">
+<label>Zoom</label>
+<input type="range" id="zoom" min="50" max="150" value="100" disabled>
+</div>
+
+<div class="field">
+<label>Position X</label>
+<input type="range" id="posX" min="0" max="100" value="50" disabled>
+</div>
+
+<div class="field">
+<label>Position Y</label>
+<input type="range" id="posY" min="0" max="100" value="50" disabled>
 </div>
 
 </div>
@@ -182,41 +116,42 @@ border-radius:10px;
 
 </div>
 
+<div class="fullscreenView" id="fs">
+<div class="timer" id="fsTimer">25:00</div>
+<button class="exitBtn" onclick="exitFullscreen()">Exit</button>
+</div>
+
 <script>
 let time=1500;
 let timer;
 let running=false;
 let sessions=0;
 let audio=new Audio();
+let bgUrl=null;
 
 const timerEl=document.getElementById("timer");
+const fsTimer=document.getElementById("fsTimer");
 const customInput=document.getElementById("customTime");
-const panel=document.getElementById("panel");
-
-const DEFAULT_TIME=25;
-
-customInput.addEventListener("input",()=>{
-if(running) return;
-let val=parseInt(customInput.value);
-if(!val||val<=0){time=DEFAULT_TIME*60;}else{time=val*60;}
-updateDisplay();
-});
 
 function updateDisplay(){
 let m=Math.floor(time/60);
 let s=time%60;
-timerEl.innerText=`${m}:${s.toString().padStart(2,'0')}`;
+let txt=`${m}:${s.toString().padStart(2,'0')}`;
+timerEl.innerText=txt;
+fsTimer.innerText=txt;
 }
 
-function startTimer(){
-if(running) return;
-if(time<=0){
-let val=parseInt(customInput.value);
-if(!val||val<=0){val=DEFAULT_TIME;customInput.value=DEFAULT_TIME;}
+customInput.addEventListener("input",()=>{
+if(running)return;
+let val=parseInt(customInput.value)||25;
 time=val*60;
-}
+updateDisplay();
+});
+
+function startTimer(){
+if(running)return;
 running=true;
-panel.classList.remove("show");
+document.getElementById("panel").classList.remove("show");
 
 timer=setInterval(()=>{
 time--;
@@ -231,18 +166,15 @@ audio.play();
 },1000);
 }
 
-function pauseTimer(){clearInterval(timer);running=false;}
-function resumeTimer(){if(!running)startTimer();}
+function pauseTimer(){clearInterval(timer);running=false}
+function resumeTimer(){if(!running)startTimer()}
 
 function resetTimer(){
 clearInterval(timer);
 running=false;
-let val=parseInt(customInput.value);
-if(!val||val<=0){val=DEFAULT_TIME;customInput.value=DEFAULT_TIME;}
-time=val*60;
+time=(parseInt(customInput.value)||25)*60;
 updateDisplay();
-audio.pause();
-audio.currentTime=0;
+audio.pause();audio.currentTime=0;
 }
 
 function startBreak(){
@@ -251,42 +183,53 @@ running=false;
 time=300;
 updateDisplay();
 startTimer();
-audio.pause();
-audio.currentTime=0;
+audio.pause();audio.currentTime=0;
 document.getElementById("stopSound").classList.remove("stopActive");
 }
 
 function stopSound(){
-audio.pause();
-audio.currentTime=0;
+audio.pause();audio.currentTime=0;
 let btn=document.getElementById("stopSound");
 btn.classList.add("stopActive");
 setTimeout(()=>btn.classList.remove("stopActive"),3000);
 }
 
-function resetSessions(){
-sessions=0;
-document.getElementById("session").innerText="Sessions: 0";
+function resetSessions(){sessions=0;document.getElementById("session").innerText="Sessions: 0"}
+
+function togglePanel(){document.getElementById("panel").classList.toggle("show")}
+
+function enterFullscreen(){document.getElementById("fs").classList.add("show")}
+
+function exitFullscreen(){
+document.getElementById("fs").classList.remove("show");
 }
 
-function togglePanel(){panel.classList.toggle("show");}
-
 bgInput.addEventListener("change",function(){
-const file=this.files[0];
-if(!file) return;
-const url=URL.createObjectURL(file);
-document.body.style.background=`url(${url}) center/cover`;
-document.getElementById("bgName").textContent=file.name;
+const file=this.files[0]; if(!file)return;
+bgUrl=URL.createObjectURL(file);
+applyBg();
+zoom.disabled=false;posX.disabled=false;posY.disabled=false;
+bgLabel.innerHTML=`<span class="marquee">${file.name} &nbsp; ${file.name}</span>`;
 this.value="";
 });
 
 audioInput.addEventListener("change",function(){
-const file=this.files[0];
-if(!file) return;
+const file=this.files[0]; if(!file)return;
 audio.src=URL.createObjectURL(file);
-document.getElementById("audioName").textContent=file.name;
+audioLabel.innerHTML=`<span class="marquee">${file.name} &nbsp; ${file.name}</span>`;
 this.value="";
 });
+
+function applyBg(){
+if(!bgUrl)return;
+document.body.style.backgroundImage=`url(${bgUrl})`;
+document.body.style.backgroundSize=zoom.value+"%";
+document.body.style.backgroundPosition=posX.value+"% "+posY.value+"%";
+}
+
+zoom.oninput=applyBg;
+posX.oninput=applyBg;
+posY.oninput=applyBg;
 
 updateDisplay();
 </script>
