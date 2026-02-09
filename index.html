@@ -289,6 +289,15 @@ this.value="";
 });
 
 updateDisplay();
+/* LIVE UPDATE when typing custom minutes */
+const customTimeInput = document.getElementById("customTime");
+
+customTimeInput.addEventListener("input", () => {
+if(running) return; // don't change while timer running
+time = (parseInt(customTimeInput.value) || 25) * 60;
+updateDisplay();
+});
+
 </script>
 
 </body>
