@@ -6,9 +6,16 @@
 
 <style>
 *{box-sizing:border-box;font-family:Inter,system-ui}
-body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;overflow:hidden;transition:background 0.3s}
+body{
+margin:0;height:100vh;display:flex;align-items:center;justify-content:center;
+background:#111;color:#fff;overflow:hidden;transition:background 0.3s
+}
 
-.app{width:820px;height:420px;background:rgba(0,0,0,0.55);border-radius:22px;backdrop-filter:blur(18px);display:flex;padding:20px;gap:20px;position:relative;overflow:hidden}
+.app{
+width:820px;height:420px;background:rgba(0,0,0,0.55);
+border-radius:22px;backdrop-filter:blur(18px);
+display:flex;padding:20px;gap:20px;position:relative;overflow:hidden
+}
 
 .left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
 
@@ -16,41 +23,46 @@ body{margin:0;height:100vh;display:flex;align-items:center;justify-content:cente
 
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
 
-button{border:none;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600;background:rgba(255,255,255,0.12);color:#fff;backdrop-filter:blur(6px);transition:.2s}
+button{
+border:none;padding:10px 16px;border-radius:12px;cursor:pointer;font-weight:600;
+background:rgba(255,255,255,0.12);color:#fff;backdrop-filter:blur(6px);transition:.2s
+}
 button:hover{background:rgba(255,255,255,0.25)}
 button.stopActive{background:#666}
 
 .session{position:absolute;bottom:8px;left:12px;font-size:12px;opacity:.7}
 
-.fullBtn{position:absolute;bottom:8px;right:12px;font-size:12px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,0.15);cursor:pointer}
-
-.panel{width:260px;height:100%;background:rgba(255,255,255,0.05);border-radius:18px;padding:16px;display:none;flex-direction:column}
+.panel{
+width:260px;height:100%;background:rgba(255,255,255,0.05);
+border-radius:18px;padding:16px;display:none;flex-direction:column
+}
 .panel.show{display:flex}
 
 .panelScroll{overflow-y:auto;padding-right:6px}
 .field{margin-bottom:18px}
 label{font-size:12px;opacity:.8}
 
-input[type="number"],input[type="range"]{width:100%;margin-top:6px;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,0.12);color:#fff}
+input[type="number"],input[type="range"]{
+width:100%;margin-top:6px;padding:9px;border-radius:10px;border:none;
+background:rgba(255,255,255,0.12);color:#fff
+}
 
-.fileBtn{margin-top:8px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.14);font-size:12px;overflow:hidden;white-space:nowrap;cursor:pointer;display:block}
+.fileBtn{
+margin-top:8px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.14);
+font-size:12px;cursor:pointer;display:block;text-align:center
+}
 
-.marquee{display:inline-block;white-space:nowrap;animation:marq 7s linear infinite}
-@keyframes marq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.fileName{
+font-size:11px;opacity:.7;margin-top:6px;word-break:break-all
+}
 
 .toggle{position:absolute;top:12px;right:14px;font-size:12px;padding:6px 10px;border-radius:10px}
-
-.fullscreenView{position:fixed;inset:0;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column;z-index:999}
-.fullscreenView.show{display:flex}
-
-.exitBtn{position:absolute;top:20px;right:20px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,0.2);cursor:pointer}
-
 </style>
 </head>
 
 <body>
 
-<div class="app" id="app">
+<div class="app">
 
 <div class="left">
 <div class="timer" id="timer">25:00</div>
@@ -69,9 +81,9 @@ input[type="number"],input[type="range"]{width:100%;margin-top:6px;padding:9px;b
 </div>
 
 <div class="session" id="session">Sessions: 0</div>
-<button class="fullBtn" onclick="enterFullscreen()">Fullscreen</button>
 </div>
 
+<!-- PANEL -->
 <div class="panel" id="panel">
 <div class="panelScroll">
 
@@ -82,84 +94,91 @@ input[type="number"],input[type="range"]{width:100%;margin-top:6px;padding:9px;b
 
 <div class="field">
 <label>Background</label>
-<label class="fileBtn" id="bgLabel">Upload background
+<label class="fileBtn">
+Upload / Replace background
 <input type="file" id="bgInput" hidden>
 </label>
+<div id="bgName" class="fileName"></div>
 </div>
 
 <div class="field">
 <label>Alarm Sound</label>
-<label class="fileBtn" id="audioLabel">Upload sound
+<label class="fileBtn">
+Upload / Replace sound
 <input type="file" id="audioInput" hidden>
 </label>
+<div id="audioName" class="fileName"></div>
 </div>
 
 <div class="field">
 <label>Zoom</label>
-<input type="range" id="zoom" min="50" max="150" value="100" disabled>
+<input type="range" id="zoom" min="0.5" max="2" step="0.01" value="1" disabled>
 </div>
 
 <div class="field">
 <label>Position X</label>
-<input type="range" id="posX" min="0" max="100" value="50" disabled>
+<input type="range" id="posX" min="-500" max="500" value="0" disabled>
 </div>
 
 <div class="field">
 <label>Position Y</label>
-<input type="range" id="posY" min="0" max="100" value="50" disabled>
+<input type="range" id="posY" min="-500" max="500" value="0" disabled>
 </div>
 
 </div>
 </div>
 
 <button class="toggle" onclick="togglePanel()">⚙</button>
-
-</div>
-
-<div class="fullscreenView" id="fs">
-<div class="timer" id="fsTimer">25:00</div>
-<button class="exitBtn" onclick="exitFullscreen()">Exit</button>
 </div>
 
 <script>
-let time=1500;
-let timer;
-let running=false;
+/* DAILY RESET */
+const todayKey="lumi_today";
+const sessionKey="lumi_sessions";
 let sessions=0;
+
+function checkDailyReset(){
+const today=new Date().toDateString();
+const savedDay=localStorage.getItem(todayKey);
+
+if(savedDay!==today){
+localStorage.setItem(todayKey,today);
+localStorage.setItem(sessionKey,"0");
+sessions=0;
+}else{
+sessions=parseInt(localStorage.getItem(sessionKey)||"0");
+}
+document.getElementById("session").innerText="Sessions: "+sessions;
+}
+checkDailyReset();
+
+/* TIMER */
+let time=1500,timer,running=false;
 let audio=new Audio();
-let bgUrl=null;
 
 const timerEl=document.getElementById("timer");
-const fsTimer=document.getElementById("fsTimer");
-const customInput=document.getElementById("customTime");
 
 function updateDisplay(){
 let m=Math.floor(time/60);
 let s=time%60;
 let txt=`${m}:${s.toString().padStart(2,'0')}`;
 timerEl.innerText=txt;
-fsTimer.innerText=txt;
 }
-
-customInput.addEventListener("input",()=>{
-if(running)return;
-let val=parseInt(customInput.value)||25;
-time=val*60;
-updateDisplay();
-});
 
 function startTimer(){
 if(running)return;
 running=true;
-document.getElementById("panel").classList.remove("show");
+panel.classList.remove("show");
 
 timer=setInterval(()=>{
 time--;
 updateDisplay();
+
 if(time<=0){
 clearInterval(timer);
 running=false;
 sessions++;
+localStorage.setItem(sessionKey,sessions);
 document.getElementById("session").innerText="Sessions: "+sessions;
 audio.play();
 }
@@ -170,21 +189,18 @@ function pauseTimer(){clearInterval(timer);running=false}
 function resumeTimer(){if(!running)startTimer()}
 
 function resetTimer(){
-clearInterval(timer);
-running=false;
-time=(parseInt(customInput.value)||25)*60;
+clearInterval(timer);running=false;
+time=(parseInt(customTime.value)||25)*60;
 updateDisplay();
 audio.pause();audio.currentTime=0;
 }
 
 function startBreak(){
-clearInterval(timer);
-running=false;
+clearInterval(timer);running=false;
 time=300;
 updateDisplay();
 startTimer();
 audio.pause();audio.currentTime=0;
-document.getElementById("stopSound").classList.remove("stopActive");
 }
 
 function stopSound(){
@@ -194,42 +210,83 @@ btn.classList.add("stopActive");
 setTimeout(()=>btn.classList.remove("stopActive"),3000);
 }
 
-function resetSessions(){sessions=0;document.getElementById("session").innerText="Sessions: 0"}
+function resetSessions(){
+sessions=0;
+localStorage.setItem(sessionKey,"0");
+document.getElementById("session").innerText="Sessions: 0";
+}
 
-function togglePanel(){document.getElementById("panel").classList.toggle("show")}
+function togglePanel(){panel.classList.toggle("show")}
 
-function enterFullscreen(){document.getElementById("fs").classList.add("show")}
+/* BACKGROUND */
+const bgInput=document.getElementById("bgInput");
+const bgName=document.getElementById("bgName");
+const zoomEl=document.getElementById("zoom");
+const posXEl=document.getElementById("posX");
+const posYEl=document.getElementById("posY");
 
-function exitFullscreen(){
-document.getElementById("fs").classList.remove("show");
+let bgData=localStorage.getItem("lumi_bg");
+
+if(bgData){
+applyBG(bgData);
+document.getElementById("bgName").textContent = "Background loaded";
+zoomEl.disabled=false;
+posXEl.disabled=false;
+posYEl.disabled=false;
 }
 
 bgInput.addEventListener("change",function(){
-const file=this.files[0]; if(!file)return;
-bgUrl=URL.createObjectURL(file);
-applyBg();
-zoom.disabled=false;posX.disabled=false;posY.disabled=false;
-bgLabel.innerHTML=`<span class="marquee">${file.name} &nbsp; ${file.name}</span>`;
-this.value="";
+const file = this.files[0];
+if(!file) return;
+
+const reader = new FileReader();
+reader.onload = function(e){
+    bgData = e.target.result;
+    localStorage.setItem("lumi_bg", bgData);
+    applyBG(bgData);
+
+    // FORCE filename to show
+    document.getElementById("bgName").textContent = file.name;
+
+    zoomEl.disabled = false;
+    posXEl.disabled = false;
+    posYEl.disabled = false;
+};
+reader.readAsDataURL(file);
+
+// important: allow re-upload same file later
+this.value = "";
 });
 
-audioInput.addEventListener("change",function(){
-const file=this.files[0]; if(!file)return;
-audio.src=URL.createObjectURL(file);
-audioLabel.innerHTML=`<span class="marquee">${file.name} &nbsp; ${file.name}</span>`;
-this.value="";
-});
-
-function applyBg(){
-if(!bgUrl)return;
-document.body.style.backgroundImage=`url(${bgUrl})`;
-document.body.style.backgroundSize=zoom.value+"%";
-document.body.style.backgroundPosition=posX.value+"% "+posY.value+"%";
+function applyBG(data){
+document.body.style.backgroundImage=`url(${data})`;
+updateBG();
 }
 
-zoom.oninput=applyBg;
-posX.oninput=applyBg;
-posY.oninput=applyBg;
+function updateBG(){
+if(!bgData)return;
+
+document.body.style.backgroundSize=`${zoomEl.value*100}%`;
+document.body.style.backgroundPosition=
+`calc(50% + ${posXEl.value}px) calc(50% + ${posYEl.value}px)`;
+}
+
+zoomEl.oninput=updateBG;
+posXEl.oninput=updateBG;
+posYEl.oninput=updateBG;
+
+/* AUDIO */
+const audioInput=document.getElementById("audioInput");
+const audioName=document.getElementById("audioName");
+
+audioInput.addEventListener("change",function(){
+const file=this.files[0];
+if(!file)return;
+
+audio.src=URL.createObjectURL(file);
+audioName.textContent=file.name;
+this.value="";
+});
 
 updateDisplay();
 </script>
