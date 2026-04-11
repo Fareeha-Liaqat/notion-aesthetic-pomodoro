@@ -12,7 +12,7 @@ A fully customizable aesthetic Pomodoro timer made for embedding inside Notion d
 * Clean glass-morphism UI
 * Background zoom & position controls
 * Works inside Notion embed
-* No frameworks — pure HTML/CSS/JS
+* No frameworks - pure HTML/CSS/JS
 
 ## 🧩 Built With
 
